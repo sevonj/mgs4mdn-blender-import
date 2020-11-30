@@ -40,7 +40,6 @@ def read_half(file_object):
                 e -= 1
             e += 1
             f &= ~0x00000400
-            #print(s,e,f)
     elif e == 31:
         if f == 0:
             return int((s << 31) | 0x7f800000)
@@ -98,8 +97,6 @@ def read_some_data(context, filepath, use_some_setting):
     print("Opening file: ", filepath)
     f = open(filepath, 'rb')
     
-    
-    
 
     # --- Get Header Data --- #
     mdn_magicbyte               = f.read(4)
@@ -107,7 +104,7 @@ def read_some_data(context, filepath, use_some_setting):
     mdn_filename = '{:0>8}'.format('{:x}'.format(fname))
     
     mdn_BoneCount               = read_uint(f)
-    mdn_MeshGroupCount          = read_uint(f) 
+    mdn_MeshGroupCount          = read_uint(f)
     mdn_MeshCount               = read_uint(f)
     mdn_FaceIndexCount          = read_uint(f)
     mdn_VertDefCount            = read_uint(f)
@@ -169,8 +166,8 @@ def read_some_data(context, filepath, use_some_setting):
     print("nullbytes              ", hex(mdn_nullbytes))
     print("Filesize:              ", hex(mdn_filesize))
     
-    # --- other --- #
     
+    # --- other --- #
     meshes = []
     
     
@@ -236,12 +233,9 @@ def read_some_data(context, filepath, use_some_setting):
         bone = armature.edit_bones.new(str(name))
         bone.head = (posx, posy, posz)
     """
-        
-    
-    
+
     # --- Vert Index --- #
     f.seek(mdn_VertIndexOffset)
-    
     vertindexes = []
     for i in range (mdn_MeshCount):
         vertindex = VertIndex()
@@ -265,7 +259,7 @@ def read_some_data(context, filepath, use_some_setting):
         vertindex.PosY = read_float(f)
         vertindex.PosZ = read_float(f)
         vertindex.PosW = read_float(f)
-        vertindexes.append(vertindex)    
+        vertindexes.append(vertindex)
     
     
     # --- Vertex Def --- #
@@ -273,15 +267,15 @@ def read_some_data(context, filepath, use_some_setting):
     vertdefs = []
     for i in range (mdn_VertDefCount):
         vert = VertDef()
-        vert.nullbytes = read_uint(f) 
+        vert.nullbytes = read_uint(f)
         vert.DefCount = read_uint(f)
         vert.Size = read_uint(f)
         vert.Start = read_uint(f)
-        vert.Definition = bytearray() 
+        vert.Definition = bytearray()
         vert.Position = bytearray()
         
         for j in range (vert.DefCount):
-            vert.Definition.append(read_byte(f)) 
+            vert.Definition.append(read_byte(f))
         f.seek(16 - vert.DefCount, 1)
         
         for j in range (vert.DefCount):
@@ -291,7 +285,7 @@ def read_some_data(context, filepath, use_some_setting):
         vertdefs.append(vert)
     
     
-    # --- Vertex Buffer --- #    
+    # --- Vertex Buffer --- #
     meshes = []
     for s in range(mdn_MeshCount):
         f.seek(mdn_VertBufferOffset + vertdefs[s].Start)
@@ -302,11 +296,11 @@ def read_some_data(context, filepath, use_some_setting):
             start = f.tell()
             for j in range (vertdefs[s].DefCount):
                 f.seek (start + vertdefs[s].Position[j])
-                if vertdefs[s].Definition[j] == 0x10:
+                if vertdefs[s].Definition[j] == 0x10: # Vert position
                     vert_PosX = -read_float(f) / 1000
                     vert_PosZ = read_float(f) / 1000
                     vert_PosY = read_float(f) / 1000
-                    verts.append([vert_PosX,vert_PosY,vert_PosZ])   
+                    verts.append([vert_PosX,vert_PosY,vert_PosZ])
                 elif vertdefs[s].Definition[j] == 0x78: # UV coords
                     u = read_half(f)
                     v = read_half(f)
@@ -351,7 +345,6 @@ def read_some_data(context, filepath, use_some_setting):
         mesh.update()
         object = bpy.data.objects.new('obj_' + str(i), mesh)
         new_collection.objects.link(object)
-
     f.close()
 
 
