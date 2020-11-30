@@ -26,6 +26,31 @@ def read_int(file_object, endian = '>'):
 def read_float(file_object, endian = '>'):
     data = struct.unpack(endian+'f', file_object.read(4))[0]
     return data
+def read_half(file_object):
+    float16 = read_short(file_object)
+    s = int((float16 >> 15) & 0x00000001)    # sign
+    e = int((float16 >> 10) & 0x0000001f)    # exponent
+    f = int(float16 & 0x000003ff)            # fraction
+    if e == 0:
+        if f == 0:
+            return int(s << 31)
+        else:
+            while not (f & 0x00000400):
+                f = f << 1
+                e -= 1
+            e += 1
+            f &= ~0x00000400
+            #print(s,e,f)
+    elif e == 31:
+        if f == 0:
+            return int((s << 31) | 0x7f800000)
+        else:
+            return int((s << 31) | 0x7f800000 | (f << 13))
+    e = e + (127 -15)
+    f = f << 13
+    temp = int((s << 31) | (e << 23) | f)
+    str = struct.pack('I',temp)
+    return struct.unpack('f',str)[0]
 
 class VertIndex:
     MeshGroupIndex: int
@@ -66,6 +91,7 @@ class Mesh:
     Verts = []
     Edges = []
     Faces = []
+    uvs = []
 
 def read_some_data(context, filepath, use_some_setting):
     print()
@@ -271,6 +297,7 @@ def read_some_data(context, filepath, use_some_setting):
         f.seek(mdn_VertBufferOffset + vertdefs[s].Start)
         mesh = Mesh()
         verts = []
+        uvs = []
         for i in range(vertindexes[s].VertCount):
             start = f.tell()
             for j in range (vertdefs[s].DefCount):
@@ -280,8 +307,13 @@ def read_some_data(context, filepath, use_some_setting):
                     vert_PosZ = read_float(f) / 1000
                     vert_PosY = read_float(f) / 1000
                     verts.append([vert_PosX,vert_PosY,vert_PosZ])   
+                elif vertdefs[s].Definition[j] == 0x78: # UV coords
+                    u = read_half(f)
+                    v = read_half(f)
+                    uvs.append([u,v])
             f.seek (start + (vertdefs[s].Size))
         mesh.Verts = verts
+        mesh.uvs = uvs
         meshes.append(mesh)
     
     
