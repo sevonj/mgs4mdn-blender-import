@@ -1,7 +1,7 @@
 bl_info = {
     "name": "MGS4 MDN Import",
     "description": "Imports MDN files from Metal Gear Solid 4.",
-    "author": "MyRightArmTheGodHand",
+    "author": "sevonj",
     "version": (0, 0, 1),
     "blender": (2, 80, 0), # I have no clue on compatibility. I'm running this on 2.90.10.
     "category": "Import-Export"
